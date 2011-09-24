@@ -1,0 +1,8 @@
+.bp-smp-info label {
+	display: block;
+	width: 80px;
+	text-align: right;
+	float: left;
+	clear: left;
+	padding: 4px 8px;
+}
