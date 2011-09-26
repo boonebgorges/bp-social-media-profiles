@@ -39,8 +39,8 @@ class BP_SMP_Admin {
 
 			bp_update_option( 'bp_smp_settings', $save_data );
 
+			// Redirect to avoid any refresh issues
 			$redirect_url = add_query_arg( 'page', 'bp-smp', is_network_admin() ? network_admin_url( 'admin.php' ) : admin_url( 'admin.php' ) );
-
 			wp_redirect( $redirect_url );
 		}
 	}
