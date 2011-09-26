@@ -27,6 +27,17 @@ class BP_Social_Media_Profiles extends BP_Component {
 	 */
 	var $fieldmeta = false;
 
+	/**
+	 * The displayed user's SM fields
+	 */
+	var $user_sm_fields;
+
+	var $this_user_data_ids;
+
+	/**
+	 * Plugin settings
+	 */
+
 	function __construct() {
 		parent::start(
 			'bp_smp',
@@ -43,6 +54,26 @@ class BP_Social_Media_Profiles extends BP_Component {
 	}
 
 	/**
+	 * Setup settings
+	 */
+	function setup_settings() {
+		// Save a query if we can help it
+		if ( !bp_is_user() ) {
+			return;
+		}
+
+		// Pull up the existing values
+		$settings = bp_get_option( 'bp_smp_settings' );
+
+		$defaults = array(
+			'display' => array( 'inline' ),
+			'label'   => __( 'Follow me online: ', 'bp-smp' )
+		);
+
+		$this->settings = wp_parse_args( $settings, $defaults );
+	}
+
+	/**
 	 * Creates the default data for SMP fields
 	 */
 	function setup_smp_site_data() {
@@ -53,6 +84,9 @@ class BP_Social_Media_Profiles extends BP_Component {
 	}
 
 	function setup_hooks() {
+		// Setup plugin settings. Hooked late so that we have access to is_ functions
+		add_action( 'bp_init', array( &$this, 'setup_settings' ) );
+
 		// Get the initial field data when on the admin
 		add_action( 'admin_init', array( &$this, 'setup_single_field' ) );
 
@@ -74,6 +108,9 @@ class BP_Social_Media_Profiles extends BP_Component {
 
 		// Remove the social media fields from the loop
 		add_action( 'bp_has_profile', array( &$this, 'modify_profile_loop' ) );
+
+		// Display hooks
+		add_action( 'bp_profile_header_meta', array( &$this, 'display_header' ) );
 	}
 
 	function setup_single_field() {
@@ -335,12 +372,18 @@ class BP_Social_Media_Profiles extends BP_Component {
 
 		$this->load_fieldmeta();
 
+		// While we're looping through, grab the ids and put them in a property for later
+		// access
+		$this_user_data_ids = array();
+
 		foreach( $profile_template->groups as $group_key => $group ) {
 			foreach( $group->fields as $field_key => $field ) {
 				$this_field_id = (int)$field->id;
 				if ( isset( $this->fieldmeta[$this_field_id] ) ) {
 					unset( $profile_template->groups[$group_key]->fields[$field_key] );
 				}
+
+				$this_user_data_ids[] = $this_field_id;
 
 				// Reset indexes
 				$profile_template->groups[$group_key]->fields = array_values( $profile_template->groups[$group_key]->fields );
@@ -352,10 +395,53 @@ class BP_Social_Media_Profiles extends BP_Component {
 			}
 		}
 
+		if ( empty( $this->this_user_data_ids ) ) {
+			$this->this_user_data_ids = $this_user_data_ids;
+		}
+
 		// Reset indexes
 		$profile_template->groups = array_values( $profile_template->groups );
 
 		return $has_profile;
+	}
+
+	/**
+	 * Loads the displayed user's SM fields from the DB
+	 */
+	function setup_user_sm_fields() {
+		global $wpdb, $bp;
+
+		// Going to query the DB directly to get a list of data row IDs for the user
+		if ( empty( $this->this_user_data_ids ) ) {
+			$data_ids = $wpdb->get_col( $wpdb->prepare( "SELECT id FROM {$bp->profile->table_name_data} WHERE user_id = %d", bp_displayed_user_id() ) );
+			$this->this_user_data_ids = (array)$data_ids;
+
+			// Now get the user SM field data
+			if ( !empty( $data_ids ) ) {
+				$user_sm_fields = $wpdb->get_col( $wpdb->prepare( "SELECT meta_value FROM {$bp->profile->table_name_meta} WHERE object_id IN (" . implode( ',', $data_ids ) . ") AND object_type = 'data' AND meta_key = 'bp_smp_data'" ) );
+
+				foreach ( $user_sm_fields as $field ) {
+					$this->user_sm_fields[] = maybe_unserialize( $field );
+				}
+			}
+		}
+	}
+
+	function display_header() {
+		$this->setup_user_sm_fields();
+
+		if ( in_array( 'header', $this->settings['display'] ) ) {
+			$html = '<div id="bp-smp-header">';
+			$html .= '<span class="bp-smp-label">' . $this->settings['label'] . '</span>';
+
+			foreach ( $this->user_sm_fields as $field ) {
+				$html .= $field['html'];
+			}
+
+			$html .= '</div>';
+
+			echo $html;
+		}
 	}
 
 	function admin_styles() {
@@ -371,11 +457,11 @@ class BP_Social_Media_Profiles extends BP_Component {
 	}
 }
 
-function bp_smp_load_core_component() {
+function bp_smp_load_component() {
 	global $bp;
 
 	$bp->social_media_profiles = new BP_Social_Media_Profiles;
 }
-add_action( 'bp_loaded', 'bp_smp_load_core_component' );
+add_action( 'bp_loaded', 'bp_smp_load_component' );
 
 ?>
