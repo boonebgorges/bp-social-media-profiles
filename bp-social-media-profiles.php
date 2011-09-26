@@ -280,6 +280,9 @@ class BP_Social_Media_Profiles extends BP_Component {
 			// Run the callback
 			$smp_data = call_user_func_array( $callback, array( $fielddata, $this->fieldmeta[$fielddata->field_id] ) );
 
+			// Apply a callback-specific filter
+			$smp_data = apply_filters( "bp_smp_" . $callback[1], $smp_data, $fielddata, $this->fieldmeta[$fielddata->field_id] );
+
 			// Create the HTML
 			$smp_data['html'] = $this->create_field_html( $smp_data );
 

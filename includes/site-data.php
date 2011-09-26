@@ -27,7 +27,7 @@ class BP_SMP_Site_Data {
 			),
 			'youtube' => array(
 				'name'		=> __( 'YouTube', 'bp-smp' ),
-				'url_pattern'	=> 'http://youtube.com/***',
+				'url_pattern'	=> 'http://youtube.com/user/***',
 				'callback'	=> array( &$this, 'youtube_cb' ),
 				'admin_desc'	=> __( 'Accepts a YouTube user name, or the full URL to a YouTube user page', 'bp-smp' )
 			),
@@ -165,18 +165,51 @@ class BP_SMP_Site_Data {
 
 		$return = array(
 			'url' 	=> $url,
-			'icon'	=> $this->get_icon_url_from_site_name( $field_data['site'] ),
+			'icon'	=> $this->get_icon_url_from_site_name( 'twitter' ),
 			'text'	=> $username,
 			'title'	=> sprintf( __( '%s on Twitter', 'bp-smp' ), $username ),
 		);
 
-		return apply_filters( 'bp_smp_twitter_cp', $return, $user_data, $field_data );
+		return $return;
+	}
+
+	/**
+	 * Facebook
+	 */
+	function facebook_cb( $user_data, $field_data ) {
+		$return = array(
+			'url'	=> $user_data->value,
+			'icon'	=> $this->get_icon_url_from_site_name( 'facebook' ),
+			'text'	=> $user_data->value,
+			'title' => __( 'Facebook', 'bp-smp' )
+		);
+
+		return $return;
 	}
 
 	/**
 	 * Callback for YouTube
 	 */
 	function youtube_cb( $user_data, $field_data ) {
-		var_dump( $user_data ); var_dump( $field_data ); die();
+		$saved_value = $user_data->value;
+		$url_pattern = $field_data['url_pattern'];
+
+		// First, assume the user-provided value is a URL, and try to get a username
+		if ( $username = $this->get_username_using_url_pattern( $saved_value, $url_pattern ) ) {
+			$url 	  = $saved_value;
+		} else {
+			// Entered value is not a URL, so it must be a username
+			$url   	  = $this->get_url_using_username( $saved_value, $url_pattern );
+			$username = $saved_value;
+		}
+
+		$return = array(
+			'url' 	=> $url,
+			'icon'	=> $this->get_icon_url_from_site_name( 'youtube' ),
+			'text'	=> $username,
+			'title'	=> sprintf( __( '%s\'s YouTube channel', 'bp-smp' ), $username ),
+		);
+
+		return $return;
 	}
 }
