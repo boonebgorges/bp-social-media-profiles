@@ -71,6 +71,9 @@ class BP_Social_Media_Profiles extends BP_Component {
 
 		// When user data is saved, determine and run the necessary callback
 		add_action( 'xprofile_data_after_save', array( &$this, 'save_field_data' ) );
+
+		// Remove the social media fields from the loop
+		add_action( 'bp_has_profile', array( &$this, 'modify_profile_loop' ) );
 	}
 
 	function setup_single_field() {
@@ -320,6 +323,39 @@ class BP_Social_Media_Profiles extends BP_Component {
 				}
 			}
 		}
+	}
+
+	function modify_profile_loop( $has_profile ) {
+		global $profile_template;
+
+		// We only want to modify the loop if this is a public profile
+		if ( !bp_is_user_profile() || bp_is_user_profile_edit() ) {
+			return $has_profile;
+		}
+
+		$this->load_fieldmeta();
+
+		foreach( $profile_template->groups as $group_key => $group ) {
+			foreach( $group->fields as $field_key => $field ) {
+				$this_field_id = (int)$field->id;
+				if ( isset( $this->fieldmeta[$this_field_id] ) ) {
+					unset( $profile_template->groups[$group_key]->fields[$field_key] );
+				}
+
+				// Reset indexes
+				$profile_template->groups[$group_key]->fields = array_values( $profile_template->groups[$group_key]->fields );
+			}
+
+			// If we've emptied the group, remove it now
+			if ( empty( $group->fields ) ) {
+				unset( $profile_template->groups[$group_key] );
+			}
+		}
+
+		// Reset indexes
+		$profile_template->groups = array_values( $profile_template->groups );
+
+		return $has_profile;
 	}
 
 	function admin_styles() {
