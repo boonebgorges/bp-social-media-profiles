@@ -31,6 +31,12 @@ class BP_SMP_Site_Data {
 				'callback'	=> array( &$this, 'youtube_cb' ),
 				'admin_desc'	=> __( 'Accepts a YouTube user name, or the full URL to a YouTube user page', 'bp-smp' )
 			),
+			'linkedin' => array(
+				'name'		=>  __( 'LinkedIn', 'bp-smp' ),
+				'url_pattern'	=> 'http://www.linkedin.com/in/***/',
+				'callback'	=> array( &$this, 'linkedin_cb' ),
+				'admin_desc'	=> __( 'Accepts a LinkedIn profile URL, or a username that can be translated into a custom profile URL (such as http://www.linkedin.com/in/username from "username")', 'bp-smp' )
+			)
 		) );
 
 		// Todo: allow merges from saved custom sites
@@ -103,6 +109,37 @@ class BP_SMP_Site_Data {
 		return apply_filters( 'bp_smp_get_icon_url_from_site_name', BP_SMP_PLUGIN_URL . 'images/icons/' . $site_name . '.png' );
 	}
 
+	function standard_data_with_url_callback( $site, $saved_value, $url_pattern ) {
+		// First, assume the user-provided value is a URL, and try to get a username
+		if ( $username = $this->get_username_using_url_pattern( $saved_value, $url_pattern ) ) {
+			$url 	  = $saved_value;
+		} else {
+			// Entered value is not a URL, so it must be a username
+			$url   	  = $this->get_url_using_username( $saved_value, $url_pattern );
+			$username = $saved_value;
+		}
+
+		$return = array(
+			'url' 	=> $url,
+			'icon'	=> $this->get_icon_url_from_site_name( $site ),
+			'text'	=> $username,
+			'title'	=> sprintf( __( '%1$s on %2$s', 'bp-smp' ), $username, ucwords( $site ) ),
+		);
+
+		return $return;
+	}
+
+	function standard_data_without_url_callback( $site, $saved_value ) {
+		$return = array(
+			'url'	=> $saved_value,
+			'icon'	=> $this->get_icon_url_from_site_name( $site ),
+			'text'	=> $saved_value,
+			'title' => ucwords( $site )
+		);
+
+		return $return;
+	}
+
 	/**
 	 * CALLBACK FUNCTIONS
 	 *
@@ -143,6 +180,8 @@ class BP_SMP_Site_Data {
 
 	/**
 	 * Callback for Twitter
+	 *
+	 * This one is customized a bit, because of issues like @ signs and hashbangs
 	 */
 	function twitter_cb( $user_data, $field_data ) {
 		$saved_value = $user_data->value;
@@ -177,39 +216,24 @@ class BP_SMP_Site_Data {
 	 * Facebook
 	 */
 	function facebook_cb( $user_data, $field_data ) {
-		$return = array(
-			'url'	=> $user_data->value,
-			'icon'	=> $this->get_icon_url_from_site_name( 'facebook' ),
-			'text'	=> $user_data->value,
-			'title' => __( 'Facebook', 'bp-smp' )
-		);
-
-		return $return;
+		return $this->standard_data_without_url_callback( 'facebook', $user_data->value );
 	}
 
 	/**
 	 * Callback for YouTube
 	 */
 	function youtube_cb( $user_data, $field_data ) {
-		$saved_value = $user_data->value;
-		$url_pattern = $field_data['url_pattern'];
+		$return = $this->standard_data_with_url_callback( 'youtube', $user_data->value, $field_data['url_pattern'] );
 
-		// First, assume the user-provided value is a URL, and try to get a username
-		if ( $username = $this->get_username_using_url_pattern( $saved_value, $url_pattern ) ) {
-			$url 	  = $saved_value;
-		} else {
-			// Entered value is not a URL, so it must be a username
-			$url   	  = $this->get_url_using_username( $saved_value, $url_pattern );
-			$username = $saved_value;
-		}
-
-		$return = array(
-			'url' 	=> $url,
-			'icon'	=> $this->get_icon_url_from_site_name( 'youtube' ),
-			'text'	=> $username,
-			'title'	=> sprintf( __( '%s\'s YouTube channel', 'bp-smp' ), $username ),
-		);
+		$return['title'] = sprintf( __( '%s\'s YouTube channel', 'bp-smp' ), $return['text'] );
 
 		return $return;
+	}
+
+	/**
+	 * LinkedIn
+	 */
+	function linkedin_cb( $user_data, $field_data ) {
+		return $this->standard_data_with_url_callback( 'linkedin', $user_data->value, $field_data['url_pattern'] );
 	}
 }
