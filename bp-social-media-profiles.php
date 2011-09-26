@@ -190,6 +190,9 @@ class BP_Social_Media_Profiles extends BP_Component {
 	 * AJAX handler for url pattern fetcher
 	 */
 	function ajax_get_url_pattern() {
+		// Load up the SM site data and callbacks
+		$this->setup_smp_site_data();
+
 		$site = isset( $_POST['site'] ) ? $_POST['site'] : '';
 
 		if ( $site ) {
@@ -232,8 +235,6 @@ class BP_Social_Media_Profiles extends BP_Component {
 			// Run the callback
 			$smp_data = call_user_func_array( $callback, array( $fielddata, $this->fieldmeta[$fielddata->field_id] ) );
 
-			var_dump( $callback );
-			var_dump( $fielddata ); die();
 		}
 
 	}
