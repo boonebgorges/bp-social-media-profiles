@@ -382,14 +382,12 @@ class BP_Social_Media_Profiles extends BP_Component {
 		foreach( $profile_template->groups as $group_key => $group ) {
 			foreach( $group->fields as $field_key => $field ) {
 				$this_field_id = (int)$field->id;
+
 				if ( isset( $this->fieldmeta[$this_field_id] ) ) {
 					unset( $profile_template->groups[$group_key]->fields[$field_key] );
 				}
 
 				$this_user_data_ids[] = $this_field_id;
-
-				// Reset indexes
-				$profile_template->groups[$group_key]->fields = array_values( $profile_template->groups[$group_key]->fields );
 			}
 
 			// If we've emptied the group, remove it now
