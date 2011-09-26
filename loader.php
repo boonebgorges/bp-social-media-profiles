@@ -11,7 +11,8 @@ define( 'BP_SMP_PLUGIN_DIR', trailingslashit( dirname( __FILE__ ) ) );
 define( 'BP_SMP_PLUGIN_URL', trailingslashit( plugins_url( array_pop( explode( '/', dirname( __FILE__ ) ) ) ) ) ); // I am a tricky guy
 
 function bp_smp_loader() {
-	require( BP_SMP_PLUGIN_DIR . 'bp-social-media-profiles.php' );
+	if ( class_exists( 'BP_Component' ) )
+		require( BP_SMP_PLUGIN_DIR . 'bp-social-media-profiles.php' );
 }
 add_action( 'bp_include', 'bp_smp_loader' );
 

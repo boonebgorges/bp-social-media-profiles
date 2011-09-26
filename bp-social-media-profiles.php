@@ -45,7 +45,8 @@ class BP_Social_Media_Profiles extends BP_Component {
 				'admin_desc'	=> __( 'Accepts a Twitter handle with or without the @ sign, or the full URL to a Twitter profile', 'bp-smp' )
 			),
 			'facebook' => array(
-				'name'		=> __( 'Facebook', 'bp-smp' )
+				'name'		=> __( 'Facebook', 'bp-smp' ),
+				'admin_desc'	=> __( 'Accepts the URL to a Facebook user profile', 'bp-smp' )
 			),
 			'youtube' => array(
 				'name'		=> __( 'YouTube', 'bp-smp' ),
@@ -106,8 +107,16 @@ class BP_Social_Media_Profiles extends BP_Component {
 	}
 
 	function add_admin_field( $field ) {
+		// Set up some data for pre-filling the fields
+		// The id of the site
 		$current_site = isset( $this->field_smp_data['site'] ) ? $this->field_smp_data['site'] : '';
 
+		// The admin description is not editable by the user, so it always comes out of
+		// $this->smp_site_data
+		$site_admin_desc = !empty( $current_site ) && isset( $this->smp_site_data[$current_site]['admin_desc'] ) ? $this->smp_site_data[$current_site]['admin_desc'] : '';
+
+		// URL patterns can be changed, so we first look to see if anything was saved by
+		// the user. If not found, we look in the "canonical" data.
 		if ( isset( $this->field_smp_data['url_pattern'] ) ) {
 			$url_pattern = $this->field_smp_data['url_pattern'];
 		} else if ( isset( $this->smp_site_data[$current_site]['url_pattern'] ) ) {
@@ -135,18 +144,22 @@ class BP_Social_Media_Profiles extends BP_Component {
 
 			<br />
 
-			<?php if ( $current_site && $url_pattern ) : ?>
-				<div id="url-pattern">
+			<div id="admin-desc"<?php if ( !$site_admin_desc ) : ?> style="display:none;"<?php endif ?>>
 
-					<label for="bp_smp[url_pattern]">
-						<?php _e( 'URL Pattern: ', 'bp-smp' ) ?>
-					</label>
+				<p class="description"><?php echo esc_html( $site_admin_desc ) ?></p>
 
-					<input name="bp_smp[url_pattern]" id="bp_smp_url_pattern" value="<?php echo esc_attr( $url_pattern ) ?>" style="width:30%" />
-					<p class="description"><?php __( 'Use three asterisks <strong>***</strong> where you want user input to appear.', 'bp-smp' ) ?>
+			</div>
 
-				</div>
-			<?php endif ?>
+			<div id="url-pattern"<?php if ( !$url_pattern ) : ?> style="display:none;"<?php endif ?>>
+
+				<label for="bp_smp[url_pattern]">
+					<?php _e( 'URL Replacement Pattern: ', 'bp-smp' ) ?>
+				</label>
+
+				<input name="bp_smp[url_pattern]" id="bp_smp_url_pattern" value="<?php echo esc_attr( $url_pattern ) ?>" style="width:30%" />
+				<p class="description"><?php _e( 'Use three asterisks <strong>***</strong> where you want user input to appear.', 'bp-smp' ) ?>
+
+			</div>
 
 		</div>
 
@@ -160,11 +173,24 @@ class BP_Social_Media_Profiles extends BP_Component {
 	 * @return str URL pattern
 	 */
 	function get_url_pattern( $site ) {
-		if ( isset( $this->smp_site_data[$site]['url_pattern'] ) ) {
-			return $this->smp_site_data[$site]['url_pattern'];
-		} else {
-			return '';
+		$return = array(
+			'url_pattern' => '',
+			'admin_desc'  => ''
+		);
+
+		if ( !$site ) {
+			return $return;
 		}
+
+		if ( isset( $this->smp_site_data[$site]['admin_desc'] ) ) {
+			$return['admin_desc'] = $this->smp_site_data[$site]['admin_desc'];
+		}
+
+		if ( isset( $this->smp_site_data[$site]['url_pattern'] ) ) {
+			$return['url_pattern'] = $this->smp_site_data[$site]['url_pattern'];
+		}
+
+		return $return;
 	}
 
 	/**
@@ -179,7 +205,7 @@ class BP_Social_Media_Profiles extends BP_Component {
 			// error
 		}
 
-		echo $url_pattern;
+		echo json_encode( $url_pattern );
 		die();
 	}
 

@@ -6,3 +6,8 @@
 	clear: left;
 	padding: 4px 8px;
 }
+
+.bp-smp-info #admin-desc p {
+	margin-left: 94px;
+	margin-bottom: 10px;
+}
