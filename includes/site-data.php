@@ -150,9 +150,13 @@ class BP_SMP_Site_Data {
 
 		// First, assume the user-provided value is a URL, and try to get a username
 		if ( $username = $this->get_username_using_url_pattern( $saved_value, $url_pattern ) ) {
-			// Account for hashbangs
 			$url 	  = $saved_value;
+
+			// Account for hashbangs
 			$username = str_replace( '#!/', '', $username );
+
+			// Account for at-signs
+			$username = str_replace( '@', '', $username );
 		} else {
 			// Entered value is not a URL, so it must be a username
 			$url   	  = $this->get_url_using_username( $saved_value, $url_pattern );

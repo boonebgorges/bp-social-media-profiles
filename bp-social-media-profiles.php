@@ -235,8 +235,62 @@ class BP_Social_Media_Profiles extends BP_Component {
 			// Run the callback
 			$smp_data = call_user_func_array( $callback, array( $fielddata, $this->fieldmeta[$fielddata->field_id] ) );
 
+			// Create the HTML
+			$smp_data['html'] = $this->create_field_html( $smp_data );
+
+			// Save to the database
+			bp_xprofile_update_fielddata_meta( $fielddata->id, 'bp_smp_data', $smp_data );
+		}
+	}
+
+	/**
+	 * @param str $type 'icon', 'text', or 'both'.
+	 *              - 'icon' will display the icon only, or text if icon not available
+	 *		- 'text' will display the text only
+	 *		- 'both' displays icon followed by text, eg [twitter icon] [twitter handle]
+	 */
+	function create_field_html( $smp_data, $type = 'icon' ) {
+		if ( !empty( $smp_data['html'] ) ) {
+			// If the callback created the HTML for us, no need for further processing
+			$html = $smp_data['html'];
+		} else {
+			// If no 'title' was provided, fall back on text
+			if ( empty( $smp_data['title'] ) ) {
+				$smp_data['title'] = isset( $smp_data['text'] ) ? $smp_data['text'] : '';
+			}
+
+			// Create the content of the field first (the image, text, or both)
+			switch ( $type ) {
+				case 'both' :
+					$content = isset( $smp_data['icon'] ) ? $this->create_image_html_from_smp_data( $smp_data ) : '';
+					$content .= isset( $smp_data['text'] ) ? $smp_data['text'] : '';
+					break;
+
+				case 'text' :
+					$content = isset( $smp_data['icon'] ) ? $smp_data['icon'] : '';
+					break;
+
+				case 'icon' :
+				default :
+					$content = isset( $smp_data['icon'] ) ? $this->create_image_html_from_smp_data( $smp_data ) : '';
+					break;
+			}
+
+			if ( !empty( $smp_data['url'] ) ) {
+				$html = '<a href="' . $smp_data['url'] . '" title="' . $smp_data['title'] . '">' . $content . '</a>';
+			} else {
+				$html = $content;
+			}
 		}
 
+		return apply_filters( 'bp_smp_create_field_html', $html, $smp_data );
+	}
+
+	function create_image_html_from_smp_data( $smp_data ) {
+		$icon = $smp_data['icon'];
+		$alt  = $smp_data['title'];
+
+		return apply_filters( 'bp_smp_create_image_html_from_smp_data', '<img src="' . $icon . '" alt="' . $alt . '" />' );
 	}
 
 	/**
