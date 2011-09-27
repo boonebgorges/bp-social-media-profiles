@@ -277,6 +277,10 @@ class BP_Social_Media_Profiles extends BP_Component {
 			// Get the callback function for the field
 			$callback = isset( $this->smp_site_data->sites[$site_id]['callback'] ) ? $this->smp_site_data->sites[$site_id]['callback'] : '';
 
+			if ( empty( $callback ) ) {
+				return;
+			}
+
 			// Run the callback
 			$smp_data = call_user_func_array( $callback, array( $fielddata, $this->fieldmeta[$fielddata->field_id] ) );
 
@@ -430,6 +434,10 @@ class BP_Social_Media_Profiles extends BP_Component {
 
 	function display_header() {
 		$this->setup_user_sm_fields();
+
+		if ( empty( $this->user_sm_fields ) ) {
+			return;
+		}
 
 		if ( in_array( 'header', $this->settings['display'] ) ) {
 			$html = '<div id="bp-smp-header">';

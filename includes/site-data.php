@@ -12,6 +12,8 @@ class BP_SMP_Site_Data {
 
 	/**
 	 * Creates the default data for SMP fields
+	 *
+	 * @todo Order?
 	 */
 	function setup_smp_site_data() {
 		$defaults = apply_filters( 'bp_smp_default_site_data', array(
@@ -23,7 +25,8 @@ class BP_SMP_Site_Data {
 			),
 			'facebook' => array(
 				'name'		=> __( 'Facebook', 'bp-smp' ),
-				'admin_desc'	=> __( 'Accepts the URL to a Facebook user profile', 'bp-smp' )
+				'admin_desc'	=> __( 'Accepts the URL to a Facebook user profile', 'bp-smp' ),
+				'callback'	=> array( &$this, 'facebook_cb' )
 			),
 			'youtube' => array(
 				'name'		=> __( 'YouTube', 'bp-smp' ),
@@ -36,6 +39,12 @@ class BP_SMP_Site_Data {
 				'url_pattern'	=> 'http://www.linkedin.com/in/***/',
 				'callback'	=> array( &$this, 'linkedin_cb' ),
 				'admin_desc'	=> __( 'Accepts a LinkedIn profile URL, or a username that can be translated into a custom profile URL (such as http://www.linkedin.com/in/username from "username")', 'bp-smp' )
+			),
+			'delicious' => array(
+				'name'		=> __( 'Delicious', 'bp-smp' ),
+				'url_pattern'	=> 'http://delicious.com/***/',
+				'callback'	=> array( &$this, 'delicious_cb' ),
+				'admin_desc'	=> __( 'Accepts a Delicious profile URL, or a username', 'bp-smp' )
 			)
 		) );
 
@@ -235,5 +244,12 @@ class BP_SMP_Site_Data {
 	 */
 	function linkedin_cb( $user_data, $field_data ) {
 		return $this->standard_data_with_url_callback( 'linkedin', $user_data->value, $field_data['url_pattern'] );
+	}
+
+	/**
+	 * Delicious
+	 */
+	function delicious_cb( $user_data, $field_data ) {
+		return $this->standard_data_with_url_callback( 'delicious', $user_data->value, $field_data['url_pattern'] );
 	}
 }
