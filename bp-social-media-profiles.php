@@ -137,8 +137,14 @@ class BP_Social_Media_Profiles extends BP_Component {
 		}
 	}
 
-	function save_admin_field() {
+	function save_admin_field( $field ) {
 		if ( isset( $_POST['bp_smp'] ) ) {
+			// When creating a new field, no field_id will have been set yet. We'll
+			// look it up based on the $field object passed to the hook
+			if ( empty( $this->field_id ) ) {
+				$this->field_id = BP_XProfile_Field::get_id_from_name( $field->name );
+			}
+
 			$new_smp_data = $_POST['bp_smp'];
 			bp_xprofile_update_field_meta( $this->field_id, 'bp_smp_data', $new_smp_data );
 		}
