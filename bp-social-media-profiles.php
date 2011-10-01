@@ -461,13 +461,13 @@ class BP_Social_Media_Profiles extends BP_Component {
 
 	function admin_styles() {
 		if ( isset( $_GET['page'] ) && 'bp-profile-setup' == $_GET['page'] ) {
-			wp_enqueue_style( 'bp-smp-admin-css', BP_SMP_PLUGIN_URL . 'css/admin.css' );
+			wp_enqueue_style( 'bp-smp-admin-css' );
 		}
 	}
 
 	function admin_scripts() {
 		if ( isset( $_GET['page'] ) && 'bp-profile-setup' == $_GET['page'] ) {
-			wp_enqueue_script( 'bp-smp-admin-js', BP_SMP_PLUGIN_URL . 'js/admin.js', array( 'jquery' ) );
+			wp_enqueue_script( 'bp-smp-admin-js' );
 		}
 	}
 }

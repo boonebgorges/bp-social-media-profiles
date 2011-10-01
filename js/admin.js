@@ -44,4 +44,24 @@ jQuery(document).ready(function($) {
 			});
 		}
 	});
+
+	$('#bp-smp-display-inline').click(function(){
+		$('#inline-opts').fadeToggle('fast');
+	});
+
+	var ior = $('#inline-opts input[type="radio"]');
+	var ir = $('#inline-replace');
+	var irf = $('#inline-replace-field');
+	if ( ir && !$(ir).is(':checked') ) {
+		$(irf).prop('disabled','disabled');
+	}
+
+	$(ior).click(function(){
+		if( $(ir).is(':checked') ) {
+			$(irf).prop('disabled','');
+		} else {
+			$(irf).prop('disabled','disabled');
+		}
+	});
+
 },(jQuery));
