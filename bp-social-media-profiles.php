@@ -109,9 +109,92 @@ class BP_Social_Media_Profiles extends BP_Component {
 		// Remove the social media fields from the loop
 		add_action( 'bp_has_profile', array( &$this, 'modify_profile_loop' ) );
 
-		// Display hooks
-		add_action( 'bp_profile_header_meta', array( &$this, 'display_header' ) );
+		// We do the display hooks in a function hooked to bp_init, so that we have access
+		// to the plugin settings
+		add_action( 'bp_init', array( &$this, 'setup_display_hooks' ), 15 );
 	}
+
+	function setup_display_hooks() {
+		// No need to run this logic if we're not on a user page
+		if ( !bp_is_user() )
+			return;
+
+		$hooks = array();
+
+		foreach( $this->settings['display'] as $display_area ) {
+			if ( 'header' == $display_area ) {
+				$hooks[] = 'bp_profile_header_meta';
+			} elseif ( 'inline' == $display_area ) {
+				switch ( $this->settings['inline_position'] ) {
+					case 'top' :
+						$hooks[] = 'bp_before_profile_loop_content';
+						break;
+
+					case 'bottom' :
+						$hooks[] = 'bp_after_profile_loop_content';
+						break;
+
+					case 'replace' :
+						// This case is tricky. Instead of adding a display
+						// hook we'll be reaching into the $profile_template
+						// global and swapping out the retrieved value with
+						// our markup
+						add_filter( 'bp_get_the_profile_field_name', array( &$this, 'profile_field_name_swap'), 10, 3 );
+						add_filter( 'bp_get_the_profile_field_value', array( &$this, 'profile_field_value_swap'), 10, 3 );
+
+						//add_filter( 'bp_has_profile', array( &$this, 'profile_field_swap' ), 10 );
+
+				}
+			}
+		}
+
+		foreach( $hooks as $hook ) {
+			add_action( $hook, array( &$this, 'display_header' ) );
+		}
+	}
+
+	function profile_field_name_swap( $name ) {
+		global $field;
+
+		if ( !empty( $this->settings['replace_field'] ) && $field->id == $this->settings['replace_field'] ) {
+			return $this->settings['label'];
+		} else {
+			return $name;
+		}
+	}
+
+	function profile_field_value_swap( $value, $type, $id ) {
+		if ( !empty( $this->settings['replace_field'] ) && $id == $this->settings['replace_field'] ) {
+			return $this->display_markup();
+		} else {
+			return $value;
+		}
+	}
+
+	function profile_field_swap( $has_profile ) {
+		global $profile_template;
+
+		if ( !bp_is_user_profile() || bp_is_user_profile_edit() ) {
+			return $has_profile;
+		}
+
+		if ( empty( $this->settings['replace_field'] ) ) {
+			return $has_profile;
+		}
+
+		foreach( $profile_template->groups as $group_key => $group ) {
+			foreach( $group->fields as $field_key => $field ) {
+				if ( $this->settings['replace_field'] == $field->id ) {
+					$profile_template->groups[$group_key]->fields[$field_key]->name = $this->settings['label'];
+
+					$profile_template->groups[$group_key]->fields[$field_key]->data->value = $this->display_markup();
+				}
+			}
+		}
+
+		return $has_profile;
+	}
+
 
 	function setup_single_field() {
 		if ( isset( $_GET['page'] ) && 'bp-profile-setup' == $_GET['page'] ) {
@@ -446,17 +529,20 @@ class BP_Social_Media_Profiles extends BP_Component {
 		}
 
 		if ( in_array( 'header', $this->settings['display'] ) ) {
-			$html = '<div id="bp-smp-header">';
-			$html .= '<span class="bp-smp-label">' . $this->settings['label'] . '</span>';
-
-			foreach ( $this->user_sm_fields as $field ) {
-				$html .= $field['html'];
-			}
-
-			$html .= '</div>';
-
-			echo $html;
+			echo $this->display_markup();
 		}
+	}
+
+	function display_markup() {
+		$html = '<div id="bp-smp-header">';
+		$html .= '<span class="bp-smp-label">' . $this->settings['label'] . '</span>';
+
+		foreach ( $this->user_sm_fields as $field ) {
+			$html .= $field['html'];
+		}
+
+		$html .= '</div>';
+		return $html;
 	}
 
 	function admin_styles() {

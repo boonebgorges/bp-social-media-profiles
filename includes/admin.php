@@ -82,10 +82,10 @@ class BP_SMP_Admin {
 					</th>
 
 					<td>
-						<input type="checkbox" name="bp_smp[display][]" value="header" <?php if ( in_array( 'header', $display ) ) : ?>checked="checked"<?php endif ?> /> <?php _e( 'Member header', 'bp-smp' ) ?>
+						<input type="checkbox" name="bp_smp[display][]" value="header" <?php if ( in_array( 'header', $display ) ) : ?>checked="checked"<?php endif ?> /> <?php _e( 'Headers', 'bp-smp' ) ?>
 						<p class="description"><?php _e( 'Fields marked as Social Media fields will be displayed in each user\'s header', 'bp-smp' ) ?></p>
 
-						<input type="checkbox" name="bp_smp[display][]" value="inline" id="bp-smp-display-inline" <?php if ( in_array( 'inline', $display ) ) : ?>checked="checked"<?php endif ?>/> <?php _e( 'Profile page', 'bp-smp' ) ?>
+						<input type="checkbox" name="bp_smp[display][]" value="inline" id="bp-smp-display-inline" <?php if ( in_array( 'inline', $display ) ) : ?>checked="checked"<?php endif ?>/> <?php _e( 'Profiles', 'bp-smp' ) ?>
 
 						<div id="inline-opts"<?php if ( !in_array( 'inline', $display ) ) : ?> style="display:none;"<?php endif ?>>
 							<label for="bp_smp[inline_position]"><?php _e( 'Position:', 'bp-smp' ) ?></label>
