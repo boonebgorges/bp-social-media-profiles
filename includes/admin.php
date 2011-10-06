@@ -7,9 +7,6 @@
 class BP_SMP_Admin {
 	function __construct() {
 		$this->setup_hooks();
-
-		wp_register_style( 'bp-smp-admin-css', BP_SMP_PLUGIN_URL . 'css/admin.css' );
-		wp_register_script( 'bp-smp-admin-js', BP_SMP_PLUGIN_URL . 'js/admin.js', array( 'jquery' ) );
 	}
 
 	function setup_hooks() {
@@ -145,10 +142,12 @@ class BP_SMP_Admin {
 	}
 
 	function enqueue_scripts() {
+		wp_register_script( 'bp-smp-admin-js', BP_SMP_PLUGIN_URL . 'js/admin.js', array( 'jquery' ) );
 		wp_enqueue_script( 'bp-smp-admin-js' );
 	}
 
 	function enqueue_styles() {
+		wp_register_style( 'bp-smp-admin-css', BP_SMP_PLUGIN_URL . 'css/admin.css' );
 		wp_enqueue_style( 'bp-smp-admin-css' );
 	}
 }
