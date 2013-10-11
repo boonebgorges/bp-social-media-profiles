@@ -33,6 +33,11 @@ class BP_SMP_Site_Data {
 				'admin_desc'	=> __( 'Accepts the URL to an Academia.edu user profile', 'bp-smp' ),
 				'callback'	=> array( &$this, 'academia_cb' )
 			),
+			'github' => array(
+				'name'		=> __( 'Github', 'bp-smp' ),
+				'admin_desc'	=> __( 'Accepts the URL to a Github user profile', 'bp-smp' ),
+				'callback'	=> array( &$this, 'github_cb' )
+			),
 			'youtube' => array(
 				'name'		=> __( 'YouTube', 'bp-smp' ),
 				'url_pattern'	=> 'http://youtube.com/user/***',
@@ -244,6 +249,13 @@ class BP_SMP_Site_Data {
 	 */
 	function academia_cb( $user_data, $field_data ) {
 		return $this->standard_data_without_url_callback( 'academia', $user_data->value );
+	}
+
+	/**
+	 * Github
+	 */
+	function github_cb( $user_data, $field_data ) {
+		return $this->standard_data_without_url_callback( 'github', $user_data->value );
 	}
 
 	/**
