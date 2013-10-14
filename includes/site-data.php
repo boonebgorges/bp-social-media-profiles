@@ -28,6 +28,11 @@ class BP_SMP_Site_Data {
 				'admin_desc'	=> __( 'Accepts the URL to a Facebook user profile', 'bp-smp' ),
 				'callback'	=> array( &$this, 'facebook_cb' )
 			),
+			'vimeo' => array(
+				'name'		=> __( 'Vimeo', 'bp-smp' ),
+				'admin_desc'	=> __( 'Accepts the URL to a Vimeo user profile', 'bp-smp' ),
+				'callback'	=> array( &$this, 'vimeo_cb' )
+			),
 			'academia' => array(
 				'name'		=> __( 'Academia.edu', 'bp-smp' ),
 				'admin_desc'	=> __( 'Accepts the URL to an Academia.edu user profile', 'bp-smp' ),
@@ -242,6 +247,13 @@ class BP_SMP_Site_Data {
 	 */
 	function facebook_cb( $user_data, $field_data ) {
 		return $this->standard_data_without_url_callback( 'facebook', $user_data->value );
+	}
+
+	/**
+	 * Vimeo
+	 */
+	function vimeo_cb( $user_data, $field_data ) {
+		return $this->standard_data_without_url_callback( 'vimeo', $user_data->value );
 	}
 
 	/**
