@@ -90,7 +90,13 @@ class BP_SMP_Site_Data {
 				'url_pattern'   => 'http://instagram.com/***/',
 				'callback'	=> array( &$this, 'instagram_cb' ),
 				'admin_desc'	=> __( 'Accepts an Instagram username, or the full URL to an Instagram profile', 'bp-smp' )
-			)
+			),
+			'tumblr' => array(
+				'name'		=> __( 'Tumblr', 'bp-smp' ),
+				'url_pattern'	=> 'http://***.tumblr.com',
+				'callback'	=> array( &$this, 'tumblr_cb' ),
+				'admin_desc'	=> __( 'Accepts a Tumblr username, or the full URL path to a Tumblr blog.', 'bp-smp' )
+			),
 		) );
 
 		// Todo: allow merges from saved custom sites
@@ -376,5 +382,12 @@ class BP_SMP_Site_Data {
 	 */
 	function instagram_cb( $user_data, $field_data ) {
 		return $this->standard_data_with_url_callback( 'instagram', $user_data->value, $field_data['url_pattern'] );
+	}
+
+	/**
+	 * Tumblr
+	 */
+	function tumblr_cb( $user_data, $field_data ) {
+		return $this->standard_data_with_url_callback( 'tumblr', $user_data->value, $field_data['url_pattern'] );
 	}
 }
