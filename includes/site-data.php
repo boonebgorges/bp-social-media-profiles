@@ -23,6 +23,12 @@ class BP_SMP_Site_Data {
 				'callback'	=> array( &$this, 'twitter_cb' ),
 				'admin_desc'	=> __( 'Accepts a Twitter handle with or without the @ sign, or the full URL to a Twitter profile', 'bp-smp' )
 			),
+			'googleplus' => array(
+				'name' 		=> __( 'Google Plus', 'bp-smp' ),
+				'url_pattern'   => 'http://plus.google.com/+***/',
+				'callback'	=> array( &$this, 'google_plus_cb' ),
+				'admin_desc'	=> __( 'Accepts a Google Plus handle with or without the + sign, or the full URL to a Google Plus profile', 'bp-smp' )
+			),
 			'facebook' => array(
 				'name'		=> __( 'Facebook', 'bp-smp' ),
 				'admin_desc'	=> __( 'Accepts the URL to a Facebook user profile', 'bp-smp' ),
@@ -255,6 +261,37 @@ class BP_SMP_Site_Data {
 			'icon'	=> $this->get_icon_url_from_site_name( 'twitter' ),
 			'text'	=> $username,
 			'title'	=> sprintf( __( '%s on Twitter', 'bp-smp' ), $username ),
+		);
+
+		return $return;
+	}
+
+	/**
+	 * Callback for Google Plus
+	 *
+	 * This one is customized a bit, because of issues like + signs
+	 */
+	function google_plus_cb( $user_data, $field_data ) {
+		$saved_value = $user_data->value;
+		$url_pattern = $field_data['url_pattern'];
+
+		// First, assume the user-provided value is a URL, and try to get a username
+		if ( $username = $this->get_username_using_url_pattern( $saved_value, $url_pattern ) ) {
+			$url 	  = $saved_value;
+
+			// Account for plus-signs
+			$username = str_replace( '+', '', $username );
+		} else {
+			// Entered value is not a URL, so it must be a username
+			$url   	  = $this->get_url_using_username( $saved_value, $url_pattern );
+			$username = $saved_value;
+		}
+
+		$return = array(
+			'url' 	=> $url,
+			'icon'	=> $this->get_icon_url_from_site_name( 'google-plus' ),
+			'text'	=> $username,
+			'title'	=> sprintf( __( '%s on Google Plus', 'bp-smp' ), $username ),
 		);
 
 		return $return;
