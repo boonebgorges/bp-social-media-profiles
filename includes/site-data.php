@@ -97,6 +97,12 @@ class BP_SMP_Site_Data {
 				'callback'	=> array( &$this, 'tumblr_cb' ),
 				'admin_desc'	=> __( 'Accepts a Tumblr username, or the full URL path to a Tumblr blog.', 'bp-smp' )
 			),
+			'vine' => array(
+				'name'		=> __( 'Vine', 'bp-smp' ),
+				'url_pattern'	=> 'http://vine.co/***',
+				'callback'	=> array( &$this, 'vine_cb' ),
+				'admin_desc'	=> __( 'Accepts a Vine username, or the full URL path to a Vine user page.', 'bp-smp' )
+			),
 		) );
 
 		// Todo: allow merges from saved custom sites
@@ -389,5 +395,12 @@ class BP_SMP_Site_Data {
 	 */
 	function tumblr_cb( $user_data, $field_data ) {
 		return $this->standard_data_with_url_callback( 'tumblr', $user_data->value, $field_data['url_pattern'] );
+	}
+
+	/**
+	 * Vine
+	 */
+	function vine_cb( $user_data, $field_data ) {
+		return $this->standard_data_with_url_callback( 'vine', $user_data->value, $field_data['url_pattern'] );
 	}
 }
