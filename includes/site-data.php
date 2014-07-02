@@ -72,6 +72,12 @@ class BP_SMP_Site_Data {
 				'url_pattern'	=> 'http://www.pinterest.com/***',
 				'callback'	=> array( &$this, 'pinterest_cb' ),
 				'admin_desc'	=> __( 'Accepts a Pinterest username, or the full URL path to a Pinterest user page.', 'bp-smp' )
+			),
+			'lastfm' => array(
+				'name'		=> __( 'last.fm', 'bp-smp' ),
+				'url_pattern'	=> 'http://www.last.fm/user/***',
+				'callback'	=> array( &$this, 'lastfm_cb' ),
+				'admin_desc'	=> __( 'Accepts a last.fm username, or the full URL path to a last.fm user page.', 'bp-smp' )
 			)
 		) );
 
@@ -313,5 +319,12 @@ class BP_SMP_Site_Data {
 	 */
 	function pinterest_cb( $user_data, $field_data ) {
 		return $this->standard_data_with_url_callback( 'pinterest', $user_data->value, $field_data['url_pattern'] );
+	}
+
+	/**
+	 * last.fm
+	 */
+	function lastfm_cb( $user_data, $field_data ) {
+		return $this->standard_data_with_url_callback( 'lastfm', $user_data->value, $field_data['url_pattern'] );
 	}
 }
