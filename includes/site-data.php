@@ -66,6 +66,12 @@ class BP_SMP_Site_Data {
 				'url_pattern'	=> 'http://www.flickr.com/photos/***',
 				'callback'	=> array( &$this, 'flickr_cb' ),
 				'admin_desc'	=> __( 'Accepts a Flickr username, or the full URL path to a Flickr user page.', 'bp-smp' )
+			),
+			'vine' => array(
+				'name'		=> __( 'Vine', 'bp-smp' ),
+				'url_pattern'	=> 'http://vine.co/***',
+				'callback'	=> array( &$this, 'vine_cb' ),
+				'admin_desc'	=> __( 'Accepts a Vine username, or the full URL path to a Vine user page.', 'bp-smp' )
 			)
 		) );
 
@@ -300,5 +306,12 @@ class BP_SMP_Site_Data {
 	 */
 	function flickr_cb( $user_data, $field_data ) {
 		return $this->standard_data_with_url_callback( 'flickr', $user_data->value, $field_data['url_pattern'] );
+	}
+
+	/**
+	 * Vine
+	 */
+	function vine_cb( $user_data, $field_data ) {
+		return $this->standard_data_with_url_callback( 'vine', $user_data->value, $field_data['url_pattern'] );
 	}
 }
