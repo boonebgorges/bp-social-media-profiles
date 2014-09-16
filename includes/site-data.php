@@ -66,6 +66,12 @@ class BP_SMP_Site_Data {
 				'url_pattern'	=> 'http://www.flickr.com/photos/***',
 				'callback'	=> array( &$this, 'flickr_cb' ),
 				'admin_desc'	=> __( 'Accepts a Flickr username, or the full URL path to a Flickr user page.', 'bp-smp' )
+			),
+			'tumblr' => array(
+				'name'		=> __( 'Tumblr', 'bp-smp' ),
+				'url_pattern'	=> 'http://***.tumblr.com',
+				'callback'	=> array( &$this, 'tumblr_cb' ),
+				'admin_desc'	=> __( 'Accepts a Tumblr username, or the full URL path to a Tumblr blog.', 'bp-smp' )
 			)
 		) );
 
@@ -300,5 +306,12 @@ class BP_SMP_Site_Data {
 	 */
 	function flickr_cb( $user_data, $field_data ) {
 		return $this->standard_data_with_url_callback( 'flickr', $user_data->value, $field_data['url_pattern'] );
+	}
+
+	/**
+	 * Tumblr
+	 */
+	function tumblr_cb( $user_data, $field_data ) {
+		return $this->standard_data_with_url_callback( 'tumblr', $user_data->value, $field_data['url_pattern'] );
 	}
 }
