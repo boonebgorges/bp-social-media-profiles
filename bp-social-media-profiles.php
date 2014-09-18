@@ -443,7 +443,7 @@ class BP_Social_Media_Profiles extends BP_Component {
 		// This only needs to be loaded once per page load
 		if ( !$this->fieldmeta ) {
 			// Get the saved fieldmeta out of the database
-			$fieldmeta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$bp->profile->table_name_meta} WHERE meta_key = 'bp_smp_data' AND object_type = 'field'" ) );
+			$fieldmeta = $wpdb->get_results( "SELECT * FROM {$bp->profile->table_name_meta} WHERE meta_key = 'bp_smp_data' AND object_type = 'field'" );
 
 			// Put it in a proper array, keyed by field id
 			$this->fieldmeta = array();
@@ -512,7 +512,7 @@ class BP_Social_Media_Profiles extends BP_Component {
 
 			// Now get the user SM field data
 			if ( !empty( $data_ids ) ) {
-				$user_sm_fields = $wpdb->get_col( $wpdb->prepare( "SELECT meta_value FROM {$bp->profile->table_name_meta} WHERE object_id IN (" . implode( ',', $data_ids ) . ") AND object_type = 'data' AND meta_key = 'bp_smp_data'" ) );
+				$user_sm_fields = $wpdb->get_col( "SELECT meta_value FROM {$bp->profile->table_name_meta} WHERE object_id IN (" . implode( ',', $data_ids ) . ") AND object_type = 'data' AND meta_key = 'bp_smp_data'" );
 
 				foreach ( $user_sm_fields as $field ) {
 					$this->user_sm_fields[] = maybe_unserialize( $field );
