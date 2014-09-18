@@ -22,6 +22,8 @@ class BP_SMP_Admin {
 		add_action( "admin_print_styles-$hook", 'bp_core_add_admin_menu_styles' );
 		add_action( "admin_print_scripts-$hook", array( &$this, 'enqueue_scripts' ) );
 		add_action( "admin_print_styles-$hook", array( &$this, 'enqueue_styles' ) );
+
+		add_action( 'admin_print_scripts', array( $this, 'enqueue_scripts' ) );
 	}
 
 	function admin_submit() {
