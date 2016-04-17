@@ -47,7 +47,7 @@ class BP_Social_Media_Profiles extends BP_Component {
 
 		$this->setup_hooks();
 
-		if ( is_super_admin() && ( is_admin() || is_network_admin() ) ) {
+		if ( is_admin() || is_network_admin() ) {
 			include( BP_SMP_PLUGIN_DIR . 'includes/admin.php' );
 			$this->admin = new BP_SMP_Admin;
 		}
@@ -102,9 +102,6 @@ class BP_Social_Media_Profiles extends BP_Component {
 
 		// Get URL pattern ajax hook
 		add_action( 'wp_ajax_get_url_pattern', array( &$this, 'ajax_get_url_pattern' ) );
-
-		// When user data is saved, determine and run the necessary callback
-		add_action( 'xprofile_data_after_save', array( &$this, 'save_field_data' ) );
 
 		// Remove the social media fields from the loop
 		add_action( 'bp_has_profile', array( &$this, 'modify_profile_loop' ) );
@@ -244,7 +241,7 @@ class BP_Social_Media_Profiles extends BP_Component {
 
 		// URL patterns can be changed, so we first look to see if anything was saved by
 		// the user. If not found, we look in the "canonical" data.
-		if ( isset( $this->field_smp_data['url_pattern'] ) ) {
+		if ( isset( $this->field_smp_data['url_pattern'] ) && $this->field_smp_data['url_pattern'] != '' ) {
 			$url_pattern = $this->field_smp_data['url_pattern'];
 		} else if ( isset( $this->smp_site_data->sites[$current_site]['url_pattern'] ) ) {
 			$url_pattern = $this->smp_site_data->sites[$current_site]['url_pattern'];
@@ -340,51 +337,6 @@ class BP_Social_Media_Profiles extends BP_Component {
 	}
 
 	/**
-	 * When a user saves profile data, process necessary callbacks
-	 */
-	function save_field_data( $fielddata ) {
-		global $wpdb, $bp;
-
-		// Load up the callbacks
-		$this->setup_smp_site_data();
-
-		// Make sure that fieldmeta has been pulled up
-		$this->load_fieldmeta();
-
-		// Check to see whether this field is an SM field, and if so, call the callback
-		if ( isset( $this->fieldmeta[$fielddata->field_id] ) ) {
-			// We'll need the ID of the field in question. Annoyingly, this is sometimes
-			// not passed with xprofile_data_after_save. In the future I'll patch BP
-			// accordingly, but for now, we'll do an extra lookup if necessary.
-			if ( empty( $fielddata->id ) ) {
-				if ( !$fielddata->id = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$bp->profile->table_name_data} WHERE user_id = %d AND field_id = %d", $fielddata->user_id, $fielddata->field_id ) ) )
-					return;
-			}
-
-			$site_id = $this->fieldmeta[$fielddata->field_id]['site'];
-
-			// Get the callback function for the field
-			$callback = isset( $this->smp_site_data->sites[$site_id]['callback'] ) ? $this->smp_site_data->sites[$site_id]['callback'] : '';
-
-			if ( empty( $callback ) ) {
-				return;
-			}
-
-			// Run the callback
-			$smp_data = call_user_func_array( $callback, array( $fielddata, $this->fieldmeta[$fielddata->field_id] ) );
-
-			// Apply a callback-specific filter
-			$smp_data = apply_filters( "bp_smp_" . $callback[1], $smp_data, $fielddata, $this->fieldmeta[$fielddata->field_id] );
-
-			// Create the HTML
-			$smp_data['html'] = $this->create_field_html( $smp_data );
-
-			// Save to the database
-			bp_xprofile_update_fielddata_meta( $fielddata->id, 'bp_smp_data', $smp_data );
-		}
-	}
-
-	/**
 	 * @param str $type 'icon', 'text', or 'both'.
 	 *              - 'icon' will display the icon only, or text if icon not available
 	 *		- 'text' will display the text only
@@ -399,31 +351,26 @@ class BP_Social_Media_Profiles extends BP_Component {
 			if ( empty( $smp_data['title'] ) ) {
 				$smp_data['title'] = isset( $smp_data['text'] ) ? $smp_data['text'] : '';
 			}
-
 			// Create the content of the field first (the image, text, or both)
 			switch ( $type ) {
 				case 'both' :
 					$content = isset( $smp_data['icon'] ) ? $this->create_image_html_from_smp_data( $smp_data ) : '';
 					$content .= isset( $smp_data['text'] ) ? $smp_data['text'] : '';
 					break;
-
 				case 'text' :
 					$content = isset( $smp_data['icon'] ) ? $smp_data['icon'] : '';
 					break;
-
 				case 'icon' :
 				default :
 					$content = isset( $smp_data['icon'] ) ? $this->create_image_html_from_smp_data( $smp_data ) : '';
 					break;
 			}
-
 			if ( !empty( $smp_data['url'] ) ) {
 				$html = '<a href="' . $smp_data['url'] . '" title="' . $smp_data['title'] . '">' . $content . '</a>';
 			} else {
 				$html = $content;
 			}
 		}
-
 		return apply_filters( 'bp_smp_create_field_html', $html, $smp_data );
 	}
 
@@ -500,23 +447,49 @@ class BP_Social_Media_Profiles extends BP_Component {
 	}
 
 	/**
-	 * Loads the displayed user's SM fields from the DB
+	 * Loads the displayed user's SM fields
 	 */
 	function setup_user_sm_fields() {
-		global $wpdb, $bp;
+		global $bp;
 
-		// Going to query the DB directly to get a list of data row IDs for the user
-		if ( empty( $this->this_user_data_ids ) ) {
-			$data_ids = $wpdb->get_col( $wpdb->prepare( "SELECT id FROM {$bp->profile->table_name_data} WHERE user_id = %d", bp_displayed_user_id() ) );
-			$this->this_user_data_ids = (array)$data_ids;
+		$this->load_fieldmeta();
+		$this->setup_smp_site_data();
 
-			// Now get the user SM field data
-			if ( !empty( $data_ids ) ) {
-				$user_sm_fields = $wpdb->get_col( "SELECT meta_value FROM {$bp->profile->table_name_meta} WHERE object_id IN (" . implode( ',', $data_ids ) . ") AND object_type = 'data' AND meta_key = 'bp_smp_data'" );
+		// Get all of the user's xprofile fields
+		$user_xprofile_fields = BP_XProfile_ProfileData::get_all_for_user( bp_displayed_user_id() );
 
-				foreach ( $user_sm_fields as $field ) {
-					$this->user_sm_fields[] = maybe_unserialize( $field );
+		// Go through all the fields, pick out the ones with bp_smp_data, and store their ids and values
+		// for us on display
+		foreach( $user_xprofile_fields as $field_name => $xprofile_field ) {
+			if ( !isset($xprofile_field['field_id']) ) {
+				continue;
+			}
+			$smp_field_id = $xprofile_field['field_id'];
+			if ( $this->is_smp_field( $smp_field_id ) ) {
+				$field_bp_smp_data = bp_xprofile_get_meta( $smp_field_id, 'field', 'bp_smp_data' );
+				if ( isset( $field_bp_smp_data['site'] ) && $field_bp_smp_data['site'] != '' ) {
+					$smp_field_value = xprofile_get_field_data( $smp_field_id, bp_displayed_user_id() );
+					$site_id = strtolower( $field_name );
+					// Get the callback function for the field
+					$callback = isset( $this->smp_site_data->sites[$site_id]['callback'] ) ? $this->smp_site_data->sites[$site_id]['callback'] : '';
+					// If the user hasn't supplied a URL pattern, check to make sure one hasn't been defined in the defaults
+					// If one has, pass it to the callback function
+					if ( !isset( $this->fieldmeta[$smp_field_id]['url_pattern'] ) || $this->fieldmeta[$smp_field_id]['url_pattern'] != '' ) {
+						if (  isset( $this->smp_site_data->sites[$site_id]['url_pattern'] ) && $this->smp_site_data->sites[$site_id]['url_pattern'] != '' ) {
+							$url_pattern = $this->smp_site_data->sites[$site_id]['url_pattern'];
+						} else {
+							$url_pattern = $this->fieldmeta[$smp_field_id]['url_pattern'];
+						}
+					}
+					// Run the callback
+					$smp_data = call_user_func_array( $callback, array( $smp_field_value, $url_pattern ) );
+
+					$smp_data = apply_filters( "bp_smp_" . $callback[1], $smp_data, $smp_field_value, $this->fieldmeta[$smp_field_id] );
+					$smp_data['html'] = $this->create_field_html( $smp_data );
+
+					$this->user_sm_fields[] = $smp_data;
 				}
+
 			}
 		}
 	}
@@ -532,7 +505,15 @@ class BP_Social_Media_Profiles extends BP_Component {
 			echo $this->display_markup();
 		}
 	}
+	function is_smp_field( $field_id ) {
+		$this->load_fieldmeta();
 
+		$smp_field_ids = array_keys( $this->fieldmeta );
+		if ( in_array( $field_id, $smp_field_ids ) ) {
+			return true;
+		}
+		return false;
+	}
 	function display_markup() {
 		$html = '<div id="bp-smp-header">';
 		$html .= '<span class="bp-smp-label">' . $this->settings['label'] . '</span>';
@@ -542,7 +523,7 @@ class BP_Social_Media_Profiles extends BP_Component {
 		}
 
 		$html .= '</div>';
-		return $html;
+		return apply_filters( 'bp_smp_display_markup', $html );
 	}
 
 	function admin_styles() {
