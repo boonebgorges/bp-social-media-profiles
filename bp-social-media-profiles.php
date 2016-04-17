@@ -47,7 +47,7 @@ class BP_Social_Media_Profiles extends BP_Component {
 
 		$this->setup_hooks();
 
-		if ( is_admin() || is_network_admin() ) {
+		if ( is_super_admin() && ( is_admin() || is_network_admin() ) ) {
 			include( BP_SMP_PLUGIN_DIR . 'includes/admin.php' );
 			$this->admin = new BP_SMP_Admin;
 		}
