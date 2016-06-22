@@ -191,7 +191,13 @@ class BP_SMP_Site_Data {
 	}
 
 	function get_icon_url_from_site_name( $site_name = '' ) {
-		return apply_filters( 'bp_smp_get_icon_url_from_site_name', BP_SMP_PLUGIN_URL . 'images/icons/' . $site_name . '.png' );
+		/**
+		 * Filters the URL of a site's icon.
+		 *
+		 * @param string $url       URL of the site icon.
+		 * @param string $site_name Name of the site (eg 'twitter').
+		 */
+		return apply_filters( 'bp_smp_get_icon_url_from_site_name', BP_SMP_PLUGIN_URL . 'images/icons/' . $site_name . '.png', $site_name );
 	}
 
 	function standard_data_with_url_callback( $site, $saved_value, $url_pattern ) {
